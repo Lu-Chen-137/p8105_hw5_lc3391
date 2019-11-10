@@ -1,0 +1,67 @@
+---
+title: "p8105_hw5_Ic3391.Rmd"
+author: "Lu Chen"
+date: "11/10/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+```
+
+## Problem 1 
+```{r}
+library(tidyverse)
+
+set.seed(10)
+
+iris_with_missing = iris %>% 
+  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
+  mutate(Species = as.character(Species))
+
+# replacing missing values for both numeric and character variables
+
+na_replace = function(vec) {
+  if (is.numeric(vec)) {
+    vec = replace(vec, is.na(vec), round(mean(vec, na.rm = TRUE)))
+  }
+  else if (is.character(vec)) {
+    vec = replace(vec, is.na(vec), "virginica")
+  }
+  vec #return the resulting vector
+}
+
+map (iris_with_missing,na_replace)
+
+```
+
+## Problem 2
+```{r}
+tibble(list.files(path = "./data")) %>% 
+  rename(id_and_arm = `list.files(path = "./data")`) %>% 
+  mutate(tran = "./data/", change_wd = str_c(tran, id_and_arm) ,data = map(change_wd, read.csv)) %>% 
+  unnest() %>% 
+  pivot_longer(
+    week_1:week_8,
+    names_to = "week",
+    names_prefix = "week_",
+    values_to = "value"
+    ) %>% 
+  subset.data.frame(select = c("id_and_arm","week","value")) %>% 
+  ggplot(aes(x = week, y = value, group = id_and_arm, color = id_and_arm)) +
+  geom_line() +
+  facet_grid(.~id_and_arm) +
+  labs(
+    title = "Observations over time",
+    x = "Week", 
+    y = "Value"
+    ) 
+
+#comments: In general, the experiment group receives higher value compared to the control group.Participants in the experiment group have a great improvement in values at certain observation time period.
+  
+```
+
+## Problem 3
